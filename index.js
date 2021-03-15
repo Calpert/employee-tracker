@@ -1,7 +1,6 @@
 const {prompt} = require('inquirer')
 const db = require('./db')
-const { removeEmployee, removeRole } = require('./db')
-const { listenerCount } = require('./db/connection')
+
 require('console.table')
 init()
 function init(){
@@ -85,9 +84,15 @@ async function loadmainprompts(){
     }
 }
 async function viewEmployees(){
-    const employees = await db.findAllEmployees()
-    console.table(employees)
+    const employees = await db.findAllEmployees().then(result => makeTable(result))
+    // console.log(employees)
+    console.log("\n")
+    // console.table(employees)
+    // makeTable(employees)
     loadmainprompts()
+}
+function makeTable(info){
+    console.table(info)
 }
 async function addEmployee(){
     const roles = await db.findAllRoles()
@@ -103,9 +108,11 @@ async function addEmployee(){
         }
     ])
     const roleChoices = roles.map(({id,title})=> ({
+        
         name:title,
         value:id,
     }))
+    console.log(roleChoices)
     const {roleId} = await prompt({
         type:'list',
         name: 'roleId',
@@ -125,6 +132,7 @@ async function addEmployee(){
         choices: managerChoices
     })
     employee.manager_id = managerId
+    await db.createEmployee(employee);
     loadmainprompts()
 }
 async function removeEmployee(){
